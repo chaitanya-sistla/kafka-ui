@@ -1,0 +1,39 @@
+---
+- name: Install OpenJDK 17 and git
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - java-17-openjdk
+    - git
+
+- name: Install yum utils
+  yum:
+    name: yum-utils
+    state: present
+
+- name: Setup docker repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Install docker and dependency packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose-plugin
+
+- name: Start docker
+  systemd:
+    state: started
+    name: docker
+
+- name: Check java version
+  shell: java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+  register: java_ver
+
+- name: Print installed java version 
+  debug:
+    var: java_ver

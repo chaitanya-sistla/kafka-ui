@@ -1,2 +1,7 @@
 ---
 # tasks file for kafka_ui
+- name: Include prerequisites task
+  include_tasks: prerequisites.yml
+
+- name: Include build task
+  include_tasks: build.yml

@@ -1,0 +1,35 @@
+---
+- name: Install apache maven
+  yum:
+    name: maven
+    state: present
+
+# currently frontend build is not supported.
+- name: Run maven clean install
+  shell: mvn clean install -Dmaven.test.skip=true -Pprod
+  when: skip_test|bool == true
+
+- name: Run maven to install
+  shell: mvn -f kafka-ui-api/pom.xml clean install -Pprod -DskipUIBuild=true
+  when: skip_ui|bool == true
+
+- name: deploy docker compose 
+  community.docker.docker_compose:
+    project_src: ./documentation/compose/
+    files:
+      - kafka-ui.yaml
+  when: start_ui_and_clusters|bool == true
+
+- name: deploy docker compose 
+  community.docker.docker_compose: 
+    project_src: ./documentation/compose/
+    files:
+      - kafka-clusters-only.yaml
+  when: start_clusters_only|bool == true
+
+- name: start the plication
+  shell: mvn spring-boot:run -Pprod
+
+- name: print the ui url
+  debug:
+    msg: To see the kafka-ui app running, navigate to http://localhost:8080 
